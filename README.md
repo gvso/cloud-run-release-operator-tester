@@ -11,9 +11,9 @@ Environment variables
 The following environment variables are used to determine the webservice's 
 behavior:
 
- * `PERCENT_500_RESPONSES`: percentage of requests that should received an HTTP
+ * `PERCENT_500_RESPONSES`: Percentage of requests that would received an HTTP
    500 error
- * `LATENCY_TRESHOLD`: What's the minimum latency that is considered above the
+ * `LATENCY_TRESHOLD`: The minimum latency that is considered above the
    expected limits of the webservice.
- * `PERCENT_OVER_LATENCY_TRESHOLD`: percentage of requests that will have a
+ * `PERCENT_OVER_LATENCY_TRESHOLD`: Percentage of requests that would receive a
    latency bigger than the treshold.
