@@ -8,14 +8,15 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 var (
 	flPort       int
 	flPercent500 int
 
-	minSleep int
-	maxSleep int
+	latencyTreshold            int
+	percentOverLatencyTreshold int
 )
 
 func init() {
@@ -39,18 +40,46 @@ func init() {
 	if flPercent500 > 100 || flPercent500 < 0 {
 		log.Fatalf("the percentage of 500 responses is not valid (0 <= n <= 100)")
 	}
+
+	// Latency tresholds.
+	var err error
+	value := os.Getenv("LATENCY_TRESHOLD")
+	if value != "" {
+		latencyTreshold, err = strconv.Atoi(value)
+		if err != nil || latencyTreshold < 0 {
+			log.Fatalf("wrong value for the latency treshold")
+		}
+	}
+
+	value = os.Getenv("PERCENT_OVER_LATENCY_TRESHOLD")
+	if value != "" {
+		percentOverLatencyTreshold, err = strconv.Atoi(value)
+		if err != nil || percentOverLatencyTreshold < 0 || percentOverLatencyTreshold > 100 {
+			log.Fatalf("wrong value for the latency treshold")
+		}
+	}
+
 }
 
 func main() {
-	log.Println(flPercent500)
 	http.HandleFunc("/", handler)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", flPort), nil))
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	s1 := rand.NewSource(time.Now().UTC().UnixNano())
+	r1 := rand.New(s1)
+
 	// Value 1 <= n <= 100
-	randValue := 1 + rand.Intn(100)
+	randValue := 1 + r1.Intn(100)
+	if randValue <= percentOverLatencyTreshold {
+		duration := time.Duration(latencyTreshold + 10)
+		time.Sleep(duration * time.Millisecond)
+	}
+
+	// Value 1 <= n <= 100
+	randValue = 1 + rand.Intn(100)
 	if randValue <= flPercent500 {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "internal server error")
