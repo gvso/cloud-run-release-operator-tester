@@ -43,7 +43,7 @@ func init() {
 
 	// Latency tresholds.
 	var err error
-	value := os.Getenv("LATENCY_TRESHOLD")
+	value := os.Getenv("LATENCY_THRESHOLD")
 	if value != "" {
 		latencyTreshold, err = strconv.Atoi(value)
 		if err != nil || latencyTreshold < 0 {
@@ -51,7 +51,7 @@ func init() {
 		}
 	}
 
-	value = os.Getenv("PERCENT_OVER_LATENCY_TRESHOLD")
+	value = os.Getenv("PERCENT_OVER_LATENCY_THRESHOLD")
 	if value != "" {
 		percentOverLatencyTreshold, err = strconv.Atoi(value)
 		if err != nil || percentOverLatencyTreshold < 0 || percentOverLatencyTreshold > 100 {
