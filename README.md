@@ -1,9 +1,10 @@
-Cloud Run Release Operator Testing App
-======================================
+Configurable Server Response
+============================
 
 This is a simple webservice that have configurable parameters for 500 errors
-and latency to allow manipulating the values needed to test the metrics
-component of [GoogleCloudPlatform/cloud-run-release-operator](https://github.com/GoogleCloudPlatform/cloud-run-release-operator).
+and latency to allow manipulating the values needed to test things like metrics.
+
+This was initially built to test metrics for [GoogleCloudPlatform/cloud-run-release-operator](https://github.com/GoogleCloudPlatform/cloud-run-release-operator).
 
 Environment variables
 --------------------
