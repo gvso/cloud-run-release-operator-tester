@@ -15,8 +15,9 @@ var (
 	flPort       int
 	flPercent500 int
 
-	latencyTreshold            int
-	percentOverLatencyTreshold int
+	latency99 int
+	latency95 int
+	latency50 int
 )
 
 func init() {
@@ -41,24 +42,35 @@ func init() {
 		log.Fatalf("the percentage of 500 responses is not valid (0 <= n <= 100)")
 	}
 
-	// Latency tresholds.
+	// Latency thresholds.
 	var err error
-	value := os.Getenv("LATENCY_THRESHOLD")
+	value := os.Getenv("LATENCY_P99")
 	if value != "" {
-		latencyTreshold, err = strconv.Atoi(value)
-		if err != nil || latencyTreshold < 0 {
-			log.Fatalf("wrong value for the latency treshold")
+		latency99, err = strconv.Atoi(value)
+		if err != nil {
+			log.Fatalf("wrong value for the latency 99th percentile")
 		}
 	}
 
-	value = os.Getenv("PERCENT_OVER_LATENCY_THRESHOLD")
+	value = os.Getenv("LATENCY_P95")
 	if value != "" {
-		percentOverLatencyTreshold, err = strconv.Atoi(value)
-		if err != nil || percentOverLatencyTreshold < 0 || percentOverLatencyTreshold > 100 {
-			log.Fatalf("wrong value for the latency treshold")
+		latency95, err = strconv.Atoi(value)
+		if err != nil {
+			log.Fatalf("wrong value for the latency 95th percentile")
 		}
 	}
 
+	value = os.Getenv("LATENCY_P50")
+	if value != "" {
+		latency50, err = strconv.Atoi(value)
+		if err != nil {
+			log.Fatalf("wrong value for the latency 50th percentile")
+		}
+	}
+
+	if latency50 > latency95 || latency95 > latency99 {
+		log.Fatal("99th percentile >= 95 percentile >= 50th percentile")
+	}
 }
 
 func main() {
@@ -73,9 +85,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Value 1 <= n <= 100
 	randValue := 1 + r1.Intn(100)
-	if randValue <= percentOverLatencyTreshold {
-		duration := time.Duration(latencyTreshold + 10)
-		time.Sleep(duration * time.Millisecond)
+	if randValue <= 1 {
+		time.Sleep(time.Duration(latency99) * time.Millisecond)
+	} else if randValue <= 5 {
+		time.Sleep(time.Duration(latency95) * time.Millisecond)
+	} else if randValue <= 50 {
+		time.Sleep(time.Duration(latency50) * time.Millisecond)
 	}
 
 	// Value 1 <= n <= 100
@@ -85,6 +100,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "internal server error")
 		return
 	}
+
+	// 200 and 201.
+	response := 200 + rand.Intn(2)
+	w.WriteHeader(response)
 
 	fmt.Fprintf(w, "successful request")
 }

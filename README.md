@@ -13,7 +13,6 @@ behavior:
 
  * `PERCENT_500_RESPONSES`: Percentage of requests that would received an HTTP
    500 error
- * `LATENCY_THRESHOLD`: The minimum latency that is considered above the
-   expected limits of the webservice.
- * `PERCENT_OVER_LATENCY_THRESHOLD`: Percentage of requests that would receive a
-   latency bigger than the threshold.
+ * `LATENCY_P99`: The minimum latency for the 99th percentile (in ms).
+ * `LATENCY_P95`: The minimum latency for the 95th percentile (in ms).
+ * `LATENCY_P50`: The minimum latency for the 50th percentile (in ms).
