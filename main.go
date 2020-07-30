@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -74,36 +75,59 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", handler)
+	runtimeConfig, err := newRuntimeConfig(context.Background(), os.Getenv("PROJECT"), os.Getenv("CONFIG_NAME"))
+	if err != nil {
+		log.Fatalf("failed to create runtime config instance: %v", err)
+	}
+
+	http.HandleFunc("/", makeHandler(runtimeConfig))
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", flPort), nil))
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	s1 := rand.NewSource(time.Now().UTC().UnixNano())
-	r1 := rand.New(s1)
+func makeHandler(runtimeConfig *runtimeConfig) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 
-	// Value 1 <= n <= 100
-	randValue := 1 + r1.Intn(100)
-	if randValue <= 1 {
-		time.Sleep(time.Duration(latency99) * time.Millisecond)
-	} else if randValue <= 5 {
-		time.Sleep(time.Duration(latency95) * time.Millisecond)
-	} else if randValue <= 50 {
-		time.Sleep(time.Duration(latency50) * time.Millisecond)
+		shouldRespectVariables, err := runtimeConfig.shouldRespectVariables()
+		if err != nil {
+			log.Printf("failed to get respect variables: %v", err)
+
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "error when processing request")
+			return
+		}
+
+		if !shouldRespectVariables {
+			log.Printf("no respecting variables about latency and error rate")
+			fmt.Fprintf(w, "successful request")
+			return
+		}
+
+		s1 := rand.NewSource(time.Now().UTC().UnixNano())
+		r1 := rand.New(s1)
+
+		// Value 1 <= n <= 100
+		randValue := 1 + r1.Intn(100)
+		if randValue <= 1 {
+			time.Sleep(time.Duration(latency99) * time.Millisecond)
+		} else if randValue <= 5 {
+			time.Sleep(time.Duration(latency95) * time.Millisecond)
+		} else if randValue <= 50 {
+			time.Sleep(time.Duration(latency50) * time.Millisecond)
+		}
+
+		// Value 1 <= n <= 100
+		randValue = 1 + rand.Intn(100)
+		if randValue <= flPercent500 {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "internal server error")
+			return
+		}
+
+		// 200 and 201.
+		response := 200 + rand.Intn(2)
+		w.WriteHeader(response)
+
+		fmt.Fprintf(w, "successful request")
 	}
-
-	// Value 1 <= n <= 100
-	randValue = 1 + rand.Intn(100)
-	if randValue <= flPercent500 {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "internal server error")
-		return
-	}
-
-	// 200 and 201.
-	response := 200 + rand.Intn(2)
-	w.WriteHeader(response)
-
-	fmt.Fprintf(w, "successful request")
 }
