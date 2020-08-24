@@ -48,7 +48,7 @@ func (r *runtimeConfig) shouldRespectVariables() (bool, error) {
 		r.lastCheck = time.Now()
 		r.respectVariables = value.Text == "yes"
 	} else {
-		log.Println("using config variable from cache")
+		log.Printf("using config variable from cache, respectVariables=%v", r.respectVariables)
 	}
 
 	return r.respectVariables, nil
