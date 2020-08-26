@@ -4,7 +4,7 @@ This is a simple webservice that have configurable parameters for 500 errors
 and latency to allow manipulating the values needed to test things like metrics.
 
 This was initially built to test metrics for
-[GoogleCloudPlatform/cloud-run-release-operator](https://github.com/GoogleCloudPlatform/cloud-run-release-manager).
+[GoogleCloudPlatform/cloud-run-release-manager](https://github.com/GoogleCloudPlatform/cloud-run-release-manager).
 
 ## Environment variables
 
